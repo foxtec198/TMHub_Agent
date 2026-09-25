@@ -1,10 +1,8 @@
 import asyncio
 from os import getenv
-
 from dotenv import load_dotenv
 from getmac import get_mac_address
 import socketio
-
 from models.models import HK, VPN
 from models.pontomais import PontoMaisReports
 
@@ -54,6 +52,7 @@ async def _run_pontomais_jornadas(command):
 async def connect():
     # agent_id é o contrato legado; os campos adicionais permitem que o
     # RPA Center reconheça este mesmo agente como compatível com Ponto Mais.
+    print(f"Conectado! MAC: {AGENT_ID}");
     await sio.emit("register", {
         "agent_id": AGENT_ID,
         "category": "Ponto Mais",
@@ -111,9 +110,10 @@ async def main():
         try:
             await sio.connect(API_URL)
             await sio.wait()
-        except Exception:
+        except Exception as e:
+            print(f"Conexão perdida: {e}, reconectando em 5s...")
             await asyncio.sleep(5)
 
-
 if __name__ == "__main__":
+    print("Iniciando")
     asyncio.run(main())
