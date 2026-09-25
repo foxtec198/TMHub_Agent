@@ -79,6 +79,18 @@ class HK:
         pg.press("enter")
         return True
     
+    def get_pos(name, other=None):
+        pos = tuple(
+            map(
+                int, (
+                    getenv(name)
+                    .strip("()")
+                    .split(",")
+                )
+            )
+        )
+        return pos if pos else other
+    
     def go_to_date_input(self, date:str, mat:str|int) -> bool:
         pg.moveTo(121, 421)
         pg.doubleClick()
@@ -119,7 +131,7 @@ class HK:
                     match task:
                         case "cancel_fault":
                             cont, isFault = 0, False
-                            posFalt = getenv("FALT_POS", False)
+                            posFalt = self.get_pos("FALT_POS", False)
 
                             if not posFalt:
                                 while not isFault:
@@ -135,7 +147,7 @@ class HK:
 
                         case "apointment":
                             cont, isApointment = 0, False
-                            posApointment = getenv("APOINTMENT_POS", False)
+                            posApointment = self.get_pos("APOINTMENT_POS", False)
 
                             if not posApointment:
                                 while not isApointment: 
@@ -153,13 +165,13 @@ class HK:
         if init: pg.hotkey("alt", "m"); pg.sleep(1); pg.press("o")
 
         isOp = False
-        posOp = getenv("MOV_OPERATIONAL_POS", False)
+        posOp = self.get_pos("MOV_OPERATIONAL_POS", False)
 
         if not posOp:
             while not isOp:
                 try: pg.doubleClick(pg.locateOnScreen(r"assets/operacional.png", minSearchTime=10, confidence=.9)); isOp = True
                 except: continue
-        else: pg.doubleClick()
+        else: pg.moveTo(posOp); pg.doubleClick(posOp)
 
         return isOp
 
