@@ -79,7 +79,7 @@ class HK:
         pg.press("enter")
         return True
     
-    def get_pos(name, other=None):
+    def get_pos(self, name, other=None):
         pos = tuple(
             map(
                 int, (
