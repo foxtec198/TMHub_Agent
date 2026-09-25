@@ -1,17 +1,14 @@
-import asyncio
-from os import getenv
-from dotenv import load_dotenv
-from getmac import get_mac_address
-import socketio
-from models.models import HK, VPN
+from dotenv import load_dotenv; load_dotenv()
 from models.pontomais import PontoMaisReports
+from models.models import HK, VPN
+from getmac import get_mac_address
+from os import getenv
+import socketio
+import asyncio
 
-
-load_dotenv()
 API_URL = getenv("API_URL")
 AGENT_ID = get_mac_address()
 sio = socketio.AsyncClient()
-
 
 async def _emit_pontomais_progress(command, progress, step, status="running"):
     await sio.emit("command_progress", {

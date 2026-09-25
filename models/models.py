@@ -101,8 +101,10 @@ class HK:
     def set_adjust(self, adjusts:list = [], open_tab_moviment=False):
         # Abre a tela de Movimentação Operacional
         if open_tab_moviment: self.open_tab_moviment(); pg.sleep(self.time_for_operational_tab)
+        
         print("Iniciando Ajustes no SAR2G - HK".center(100))
-        print('\n' * 2)
+        print(); print()
+        
         for adjust in adjusts: # Itera sobre os ajustes
             days = adjust.get("days") # Obtem os dias do colab
             mat = str(adjust.get("mat")) # Obtem a MAT/RE do Colab
@@ -116,34 +118,52 @@ class HK:
                     print(f"Iniciando Tarefa: {colored(task.upper(), "green") if task.lower() == 'apointment' else colored(task.upper(), "red")} - Data: {dt.now().time()}")
                     match task:
                         case "cancel_fault":
-                            make_task, cont, isFault = False, 0, False
-                            while not isFault:
-                                try: isFault = pg.locateOnScreen("assets/no_fault.png", confidence=.9); make_task = True;
-                                except: 
-                                    cont += 1
-                                    if cont == 4: print(f"FALTA NÃO ENCONTRADA - MATRICULA: {mat} - DIA: {day} - INFO: {dt.now()}"); isFault = True; make_task = False;
-                                
-                            if self.cancel_fault(isFault, make_task): pg.sleep(self.time_for_fault); print(f"Tarefa concluida - {task} - Matricula - {mat} - {dt.now().time()}");
+                            cont, isFault = 0, False
+                            posFalt = getenv("FALT_POS", False)
+
+                            if not posFalt:
+                                while not isFault:
+                                    try: isFault = pg.locateOnScreen("assets/no_fault.png", confidence=.9); make_task = True;
+                                    except: 
+                                        cont += 1
+                                        if cont == 4: print(f"FALTA NÃO ENCONTRADA - MATRICULA: {mat} - DIA: {day} - INFO: {dt.now()}"); isFault = True
+                            else: isFault = posFalt
+                            
+                            if self.cancel_fault(isFault): 
+                                pg.sleep(self.time_for_fault); 
+                                print(f"Tarefa concluida - {task} - Matricula - {mat} - {dt.now().time()}");
 
                         case "apointment":
-                            make_task, cont, isApointment = False, 0, False
-                            while not isApointment: 
-                                try: isApointment = pg.locateOnScreen("assets/apointment.png", confidence=.9); make_task = True
-                                except: 
-                                    cont += 1
-                                    if cont == 4: print(f"APONTAMENTO NÃO ENCONTRADO - MATRICULA: {mat} - DIA: {day} - INFO: {dt.now()}"); isApointment = True; make_task = False
-                            if self.set_apointments(isApointment, make_task): pg.sleep(self.time_for_apointment); print(f"Tarefa concluida - {task} - Matricula - {mat} - {dt.now().time()}");
+                            cont, isApointment = 0, False
+                            posApointment = getenv("APOINTMENT_POS", False)
+
+                            if not posApointment:
+                                while not isApointment: 
+                                    try: isApointment = pg.locateOnScreen("assets/apointment.png", confidence=.9); make_task = True
+                                    except: 
+                                        cont += 1
+                                        if cont == 4: print(f"APONTAMENTO NÃO ENCONTRADO - MATRICULA: {mat} - DIA: {day} - INFO: {dt.now()}"); isApointment = True
+                            else: isApointment = posApointment
+
+                            if self.set_apointments(isApointment): 
+                                pg.sleep(self.time_for_apointment); 
+                                print(f"Tarefa concluida - {task} - Matricula - {mat} - {dt.now().time()}");
                     
     def open_tab_moviment(self, init:bool= True) -> bool:
         if init: pg.hotkey("alt", "m"); pg.sleep(1); pg.press("o")
 
         isOp = False
-        while not isOp:
-            try: pg.doubleClick(pg.locateOnScreen(r"assets/operacional.png", minSearchTime=10, confidence=.9)); isOp = True
-            except: continue
+        posOp = getenv("MOV_OPERATIONAL_POS", False)
+
+        if not posOp:
+            while not isOp:
+                try: pg.doubleClick(pg.locateOnScreen(r"assets/operacional.png", minSearchTime=10, confidence=.9)); isOp = True
+                except: continue
+        else: pg.doubleClick()
+
         return isOp
 
-    def cancel_fault(self, isFault: pg.locateOnScreen, make_task:bool) -> bool:
+    def cancel_fault(self, isFault: pg.locateOnScreen) -> bool:
         pg.moveTo(isFault)
         pg.doubleClick(isFault)
         sleep(6)
@@ -154,7 +174,7 @@ class HK:
         [pg.press("enter") for _ in range(3)]
         return True
 
-    def set_apointments(self, isApointment:pg.locateOnScreen, make_task:bool) -> bool:
+    def set_apointments(self, isApointment:pg.locateOnScreen) -> bool:
         pg.moveTo(isApointment)
         pg.doubleClick(isApointment)
         sleep(6)
